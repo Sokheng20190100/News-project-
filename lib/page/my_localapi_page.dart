@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:homework_day3_app/model/article_model.dart';
+import 'package:homework_day3_app/page/insert_localapi_page.dart';
 import 'package:homework_day3_app/repos/my_localapi_repo.dart';
 
 class MyLocalAPIPage extends StatefulWidget {
@@ -49,23 +50,31 @@ class _MyLocalAPIPageState extends State<MyLocalAPIPage> {
     );
   }
   get _buildAddIcon{
-    return IconButton(icon: Icon(Icons.add), onPressed: (){
-      Article article = Article(
-        aid: "9",
-        title: "test title 5",
-        body: "test body 5",
-        date: DateTime.now().toIso8601String(),
-        img: "https://i.ytimg.com/vi/1Ne1hqOXKKI/maxresdefault.jpg"
-      );
-      insertData(article).then((value) {
-        print("value: $value");
-        if(value == "inserted"){
-          _showMessage("Data inserted");
-        }
-        else{
-          _showMessage("Something went wrong");
-        }
-      });
+    return IconButton(
+        icon: Icon(Icons.add),
+        onPressed: () {
+      // Article article = Article(
+      //   aid: "9",
+      //   title: "test title 5",
+      //   body: "test body 5",
+      //   date: DateTime.now().toIso8601String(),
+      //   img: "https://i.ytimg.com/vi/1Ne1hqOXKKI/maxresdefault.jpg"
+      // );
+      // insertData(article).then((value) {
+      //   print("value: $value");
+      //   if(value == "inserted"){
+      //     _showMessage("Data inserted");
+      //   }
+      //   else{
+      //     _showMessage("Something went wrong");
+      //   }
+      // });
+
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => InsertLocalAPIPage(),
+          ),
+          );
     });
   }
   get _buildUpdateIcon{
@@ -118,15 +127,10 @@ class _MyLocalAPIPageState extends State<MyLocalAPIPage> {
   get _buildListView {
     return RefreshIndicator(
       child: ListView.builder(
-        itemBuilder: (_, index) {
-          return ListTile(
-            title: Text(_article[index].title),
-            subtitle: _article[index].img != null
-                ? _buildArticleImage(index)
-                : Text(_article[index].body),
-          );
-        },
         itemCount: _article.length,
+        itemBuilder: (context,index){
+          return _buildItem(_article[index]);
+        },
       ),
       onRefresh: () async {
         setState(() {
@@ -135,8 +139,41 @@ class _MyLocalAPIPageState extends State<MyLocalAPIPage> {
       },
     );
   }
+  _buildItem(Article item){
+    return Card(
+      child: Column(
+        children: [
+          ListTile(
+            title: Text(item.title),
+            trailing: IconButton(
+              icon: Icon(Icons.delete),
+              onPressed: (){
+                deleteData(item).then((value){
+                  print("value: $value");
+                  if(value == "Deleted"){
+                    _showMessage("Data Delete");
+                    setState(() {
+                      _article.remove(item);
+                    });
+                  }
+                  else{
+                    _showMessage("Something went wrong");
+                  }
+                });
+              },
+            ),
+          ),
+          ListTile(
+            subtitle: item.img != null
+                ? _buildArticleImage(item)
+                : Text(item.body),
+          ),
+        ],
 
-  Container _buildArticleImage(int index) {
+      ),
+    );
+  }
+  Container _buildArticleImage(Article item) {
     return Container(
       height: 400,
       width: 400,
@@ -145,7 +182,7 @@ class _MyLocalAPIPageState extends State<MyLocalAPIPage> {
           shape: BoxShape.rectangle,
           color: Colors.black12,
           image: DecorationImage(
-            image: NetworkImage(_article[index].img),
+            image: NetworkImage(item.img),
             fit: BoxFit.cover,
           ),
           border: Border.all(width: 5, color: Colors.black12),
